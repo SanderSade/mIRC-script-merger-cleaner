@@ -11,6 +11,7 @@ namespace MsMerge.Dto
 	{
 		private readonly Configuration _configuration;
 		private readonly StringBuilder _output;
+		private long TotalSize;
 
 
 		/// <inheritdoc />
@@ -33,12 +34,18 @@ namespace MsMerge.Dto
 			if (File.Exists(_configuration.OutFile))
 				ConsoleHelper.Warn($"Output file \"{_configuration.OutFile}\" exists and will be overwritten");
 
+			Console.WriteLine($"Writing output file: {_configuration.OutFile}");
 			File.WriteAllText(_configuration.OutFile, _output.ToString(), Encoding.UTF8);
+			var outSize = new FileInfo(_configuration.OutFile).Length;
+			Console.WriteLine($"Total input size (bytes): {TotalSize}, output: {outSize}. Reduction was {TotalSize - outSize} bytes ({100 - Math.Round(outSize * 100f / TotalSize, 2)}%)");
 		}
 
 
 		private void AddFile(InFile inFile)
 		{
+			Console.WriteLine($"Processing {inFile.Filename}");
+			TotalSize += new FileInfo(inFile.Filename).Length;
+
 			var lines = File.ReadAllLines(inFile.Filename);
 			var debugLine = false;
 			var multiLineComment = false;
@@ -135,7 +142,8 @@ namespace MsMerge.Dto
 				}
 
 				if (trimmedLine.Contains("  "))
-					ConsoleHelper.Warn($"Possibly unintended double space. File {inFile.Filename}, line {i + 1}: {line}");
+					ConsoleHelper.Warn($"Possibly unintended double/multi spaces. File {inFile.Filename}, line {i + 1}: {line}");
+
 				_output.AppendLine(line);
 			}
 

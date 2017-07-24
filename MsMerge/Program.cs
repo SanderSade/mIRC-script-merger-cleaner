@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using MsMerge.Application;
 using MsMerge.Dto;
 
@@ -8,11 +9,14 @@ namespace MsMerge
 	{
 		private static void Main(string[] args)
 		{
+			var sw = Stopwatch.StartNew();
 			AppDomain.CurrentDomain.UnhandledException += CurrentDomainOnUnhandledException;
 			var configuration = new ConfigurationParser().Parse(args);
 
 			var merger = new ScriptMerger(configuration);
 			merger.Merge();
+			sw.Stop();
+			Console.WriteLine($"Finished in {sw.Elapsed}{(Warnings > 0 ? " with " + Warnings + " warnings." : ".")}");
 #if DEBUG
 			Console.WriteLine("Press any key to continue...");
 			Console.ReadKey();
@@ -26,5 +30,8 @@ namespace MsMerge
 
 			Environment.Exit(99);
 		}
+
+
+		public static int Warnings { get; set; }
 	}
 }

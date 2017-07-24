@@ -27,10 +27,9 @@ namespace MsMerge
 		{
 			var oldColor = Console.ForegroundColor;
 			Console.ForegroundColor = ConsoleColor.Yellow;
-			Console.WriteLine();
 			Console.WriteLine($"[Warning] {message}");
-			Console.WriteLine();
 			Console.ForegroundColor = oldColor;
+			Program.Warnings++;
 		}
 
 
