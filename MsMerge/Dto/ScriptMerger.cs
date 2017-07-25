@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using MsMerge.Application;
@@ -11,7 +11,7 @@ namespace MsMerge.Dto
 	{
 		private readonly Configuration _configuration;
 		private readonly StringBuilder _output;
-		private long TotalSize;
+		private long _totalSize;
 
 
 		/// <inheritdoc />
@@ -32,19 +32,27 @@ namespace MsMerge.Dto
 			}
 
 			if (File.Exists(_configuration.OutFile))
-				ConsoleHelper.Warn($"Output file \"{_configuration.OutFile}\" exists and will be overwritten");
+			{
+				var oldFileCopy = Path.ChangeExtension(_configuration.OutFile,
+					$"{DateTimeOffset.Now:yyyyMMdd.HHmmss}{Path.GetExtension(_configuration.OutFile)}");
+				ConsoleHelper.Warn($"Output file \"{_configuration.OutFile}\" exists. Old file will be renamed to {oldFileCopy}");
+
+				Debug.Assert(oldFileCopy != null, "oldFileCopy != null");
+				File.Move(_configuration.OutFile, oldFileCopy);
+			}
 
 			Console.WriteLine($"Writing output file: {_configuration.OutFile}");
 			File.WriteAllText(_configuration.OutFile, _output.ToString(), Encoding.UTF8);
 			var outSize = new FileInfo(_configuration.OutFile).Length;
-			Console.WriteLine($"Total input size (bytes): {TotalSize}, output: {outSize}. Reduction was {TotalSize - outSize} bytes ({100 - Math.Round(outSize * 100f / TotalSize, 2)}%)");
+			Console.WriteLine(
+				$"Total input size (bytes): {_totalSize}, output: {outSize}. Reduction was {_totalSize - outSize} bytes ({100 - Math.Round(outSize * 100f / _totalSize, 2)}%)");
 		}
 
 
 		private void AddFile(InFile inFile)
 		{
 			Console.WriteLine($"Processing {inFile.Filename}");
-			TotalSize += new FileInfo(inFile.Filename).Length;
+			_totalSize += new FileInfo(inFile.Filename).Length;
 
 			var lines = File.ReadAllLines(inFile.Filename);
 			var debugLine = false;
@@ -55,41 +63,50 @@ namespace MsMerge.Dto
 				var line = lines[i];
 				var trimmedLine = line.Trim();
 
-				if (inFile.Minify && string.IsNullOrWhiteSpace(trimmedLine))
+				if (!multiLineComment && inFile.Minify && string.IsNullOrWhiteSpace(trimmedLine))
 					continue;
 
 				if (inFile.Minify)
 					line = trimmedLine;
 
 				/*
- * https://en.wikichip.org/wiki/mirc/introduction#Multi-line_Comments
- * Text may touch the opening /* on the right; however, /* must start the line
- * The closing *slash must be on a line of its own
- */
+				* https://en.wikichip.org/wiki/mirc/introduction#Multi-line_Comments
+				* Text may touch the opening /* on the right; however, /* must start the line
+				* The closing *slash must be on a line of its own
+				*/
 
 				//check for multi - line comment start/end
-				if (inFile.CommentMode == CommentMode.All || inFile.CommentMode == CommentMode.MultiLine)
+				//we need to do this even if we aren't stripping the comments, as we don't want to trim multi-line comments
+				if (string.Compare(trimmedLine, "*/", StringComparison.Ordinal) == 0)
 				{
-					if (string.Compare(trimmedLine, "*/", StringComparison.Ordinal) == 0)
+					if (!multiLineComment)
 					{
-						if (!multiLineComment)
-						{
-							ConsoleHelper.Warn($"Multi-line comment (/* */) ends but was never started. File {inFile.Filename}, line {i + 1}");
+						ConsoleHelper.Warn($"Multi-line comment (/* */) ends but was never started. File {inFile.Filename}, line {i + 1}");
+						if (inFile.CommentMode == CommentMode.All || inFile.CommentMode == CommentMode.MultiLine)
 							continue;
-						}
-
-						multiLineComment = false;
-						continue;
 					}
 
-					if (multiLineComment)
-						continue;
+					multiLineComment = false;
 
-					if (trimmedLine.StartsWith("/*", StringComparison.Ordinal))
-					{
-						multiLineComment = true;
+					if (inFile.CommentMode == CommentMode.All || inFile.CommentMode == CommentMode.MultiLine)
 						continue;
-					}
+				}
+
+				if (multiLineComment && (inFile.CommentMode == CommentMode.All || inFile.CommentMode == CommentMode.MultiLine))
+					continue;
+
+				if (trimmedLine.StartsWith("/*", StringComparison.Ordinal))
+				{
+					multiLineComment = true;
+					if (inFile.CommentMode == CommentMode.All || inFile.CommentMode == CommentMode.MultiLine)
+						continue;
+				}
+
+				//add multiline comments as-is even if we're minifying
+				if (multiLineComment)
+				{
+					_output.AppendLine(lines[i]);
+					continue;
 				}
 
 				//single-line comment or DEBUG ON/OFF  (;"// ")
@@ -117,10 +134,8 @@ namespace MsMerge.Dto
 						}
 					}
 
-
 					if (inFile.CommentMode == CommentMode.All || inFile.CommentMode == CommentMode.SingleLine)
 						continue;
-
 				}
 
 				if (inFile.StripDebug && debugLine)
@@ -138,7 +153,6 @@ namespace MsMerge.Dto
 							line = Regex.Replace(line, "alias ", "alias -l ", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
 						}
 					}
-
 				}
 
 				if (trimmedLine.Contains("  "))
