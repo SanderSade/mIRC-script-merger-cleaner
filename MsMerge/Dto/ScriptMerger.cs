@@ -31,21 +31,35 @@ namespace MsMerge.Dto
 				AddFile(inFile);
 			}
 
-			if (File.Exists(_configuration.OutFile))
-			{
-				var oldFileCopy = Path.ChangeExtension(_configuration.OutFile,
-					$"{DateTimeOffset.Now:yyyyMMdd.HHmmss}{Path.GetExtension(_configuration.OutFile)}");
-				ConsoleHelper.Warn($"Output file \"{_configuration.OutFile}\" exists. Old file will be renamed to {oldFileCopy}");
-
-				Debug.Assert(oldFileCopy != null, "oldFileCopy != null");
-				File.Move(_configuration.OutFile, oldFileCopy);
-			}
+			ValidateOutputFile();
 
 			Console.WriteLine($"Writing output file: {_configuration.OutFile}");
 			File.WriteAllText(_configuration.OutFile, _output.ToString(), Encoding.UTF8);
 			var outSize = new FileInfo(_configuration.OutFile).Length;
+
 			Console.WriteLine(
 				$"Total input size (bytes): {_totalSize}, output: {outSize}. Reduction was {_totalSize - outSize} bytes ({100 - Math.Round(outSize * 100f / _totalSize, 2)}%)");
+		}
+
+
+		private void ValidateOutputFile()
+		{
+			if (File.Exists(_configuration.OutFile))
+			{
+				var fi = new FileInfo(_configuration.OutFile);
+				var oldFileCopy = Path.ChangeExtension(_configuration.OutFile,
+					$"{fi.LastWriteTime:yyyyMMdd.HHmmss}{Path.GetExtension(_configuration.OutFile)}");
+
+				if (File.Exists(oldFileCopy))
+					oldFileCopy = Path.ChangeExtension(oldFileCopy,
+						$"-{DateTimeOffset.Now:yyyyMMdd.HHmmss}{Path.GetExtension(_configuration.OutFile)}");
+
+				ConsoleHelper.Warn($"Output file \"{_configuration.OutFile}\" exists. Old file will be renamed to {oldFileCopy}");
+
+				Debug.Assert(oldFileCopy != null, "oldFileCopy != null");
+				Debug.Assert(_configuration.OutFile != null, "_configuration.OutFile != null");
+				File.Move(_configuration.OutFile, oldFileCopy);
+			}
 		}
 
 
@@ -72,10 +86,10 @@ namespace MsMerge.Dto
 				/*
 				* https://en.wikichip.org/wiki/mirc/introduction#Multi-line_Comments
 				* Text may touch the opening /* on the right; however, /* must start the line
-				* The closing *slash must be on a line of its own
+				* The closing * / must be on a line of its own
 				*/
 
-				//check for multi - line comment start/end
+				//check for multi-line comment start/end
 				//we need to do this even if we aren't stripping the comments, as we don't want to trim multi-line comments
 				if (string.Compare(trimmedLine, "*/", StringComparison.Ordinal) == 0)
 				{
