@@ -1,4 +1,4 @@
-﻿{
+{
 	"$schema": "http://json-schema.org/draft-04/schema",
 	"description": "JSON schema helping to create configuration files for mIRC script merger & minimizer",
 	"id": "https://github.com/SanderSade/mIRC-script-merger-cleaner/tree/master/MsMerge/Schema/MsMerge.schema.json",
