@@ -1,0 +1,48 @@
+﻿{
+	"$schema": "http://json-schema.org/draft-04/schema",
+	"description": "JSON schema helping to create configuration files for mIRC script merger & minimizer",
+	"id": "https://github.com/SanderSade/mIRC-script-merger-cleaner/tree/master/MsMerge/Schema/MsMerge.schema.json",
+	"properties": {
+		"input": {
+			"description": "An array of input script files. Every file has individual settings",
+			"items": {
+				"properties": {
+					"script": {
+						"description": "Full-path or local filename of input script",
+						"type": "string"
+					},
+					"localAliases": {
+						"type": "boolean",
+						"description": "Mark all aliases as local (-l). Defaults to false if omitted."
+					},
+					"minify": {
+						"type": "boolean",
+						"description": "Remove space and tab characters from start and end of the line, remove empty lines. Does not remove comments, use commentMode for that. Defaults to false if omitted."
+					},
+					"commentMode": {
+						"description": "Remove comments. Use All to remove all comments, MultiLine to remove multi-line /* */ comments and SingleLine to remove single-line (;comment, //comment) comments. Omit or set to Off to disable",
+						"type": "string",
+						"enum": [ "All", "MultiLine", "SingleLine", "Off" ]
+					},
+					"stripDebug": {
+						"type": "boolean",
+						"description": "Remove everything between //DEBUG ON and //DEBUG OFF, including those comments. Note that //DEBUG directives must be at the start of the line (spaces/tabs before are OK). Defaults to false if omitted."
+					}
+				},
+				"type": "object",
+				"required": [ "script" ],
+				"additionalProperties": false
+			},
+			"minItems": 1,
+			"type": "array",
+			"uniqueItems": true
+		},
+		"output": {
+			"type": "string",
+			"description": "Output file. Full path or local filename of the output. If the file exists, it will be renamed to include date & time."
+		}
+	},
+	"required": [ "input", "output" ],
+	"title": "JSON schema for mIRC script merger & minimizer configuration",
+	"type": "object"
+}

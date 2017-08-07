@@ -1,0 +1,31 @@
+﻿{
+	"$schema": "MsMerge.schema.json",
+	"input": [
+		{
+			"script": "c:\\dev\\myScript\\intro.txt",
+			"commentMode": "Off"
+		},
+		{
+			"script": "c:\\dev\\myScript\\main.mrc",
+			"commentMode": "SingleLine",
+			"minify": true,
+			"stripDebug": true,
+			"localAliases": true
+		},
+		{
+			"script": "c:\\dev\\myScript\\globalAliases.mrc",
+			"commentMode": "All",
+			"minify": true,
+			"stripDebug": true,
+			"localAliases": false
+		},
+		{
+			"script": "c:\\dev\\myScript\\events.mrc",
+			"commentMode": "MultiLine",
+			"minify": true,
+			"stripDebug": true,
+			"localAliases": true
+		}
+	],
+	"output": "c:\\dev\\myScript\\Release\\myScript.mrc"
+}
