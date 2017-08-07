@@ -13,7 +13,7 @@ Using MsMerge configuration, you can specify how every individual file is handle
 
 - **Minification & cleaning**
 
-Minify script before releasing, removing formatting and empty lines. This both lowers the download size and memory footpring of a script. 
+Minify script before releasing, removing formatting and empty lines. This both lowers the download size and memory footprint of a script. 
 
 As a separate option, it is possible to remove comments. MsMerge supports removing all comments, or just removing single-line (; or //) or multi-line (/**/) comments.
 
@@ -30,7 +30,7 @@ Marking aliases as local (-l) ensures that other scripts cannot access your alia
 
 ## Configuration
 
-MsMerge can be used with configuration file (JSON) or command-line variables. It is recommended to use the configuration file, as that way it is possible to have individual options for every source file.
+MsMerge can be used with configuration file (JSON) or command-line variables. It is recommended to use the configuration file, as that way it is possible to set individual options for every source file.
 
 ### Configuration file
 
@@ -43,7 +43,7 @@ MsMerge includes schema file ([MsMerge.schema.json](https://raw.githubuserconten
 
 #### Example configuration file
 
-[MsMerge.example.json](https://github.com/SanderSade/mIRC-script-merger-cleaner/blob/master/MsMerge/Schema/MsMerge.example.json). Note that you have to escape backslashes (\\) in with double backslashes (\\\\).
+[MsMerge.example.json](https://github.com/SanderSade/mIRC-script-merger-cleaner/blob/master/MsMerge/Schema/MsMerge.example.json). Note that you have to escape backslashes (\\) in file names with double backslashes (\\\\).
 
 ```
 {
