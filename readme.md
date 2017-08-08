@@ -7,7 +7,7 @@ MsMerge is a program to help with mIRC script development and releasing.
 
 - **Merge multiple script files to one file for releasing**
 
-During the development, it is easier to have multiple files open, compared to jumping up and down multi-thousand lines behemoth. 
+During the development, it is easier to have multiple files open, compared to jumping up and down in multi-thousand lines behemoth. 
 
 Using MsMerge configuration, you can specify how every individual file is handled - for example, leave introduction and changelog as-is, but minify and remove comments from script files.
 
@@ -15,13 +15,29 @@ Using MsMerge configuration, you can specify how every individual file is handle
 
 Minify script before releasing, removing formatting and empty lines. This both lowers the download size and memory footprint of a script. 
 
-As a separate option, it is possible to remove comments. MsMerge supports removing all comments, or just removing single-line (; or //) or multi-line (/**/) comments.
+Note that unlike JS minifiers do, MsMerge does **not** rename aliases and variables - pretty much all non-trivial mIRC scripts use dynamic variables, and there are scripts that rely on other scripts having variables and aliases with specific names.
+
+As a separate option, it is possible to remove comments. MsMerge supports removing all comments, just removing single-line (; or //) or multi-line (/**/) comments. This can be set per-file.
 
 
 - **Help with debugging statements**
 
 Surround debug statements with //DEBUG ON .. //DEBUG OFF for development. MsMerge can strip the statements and everything between them for releasing. 
 
+In essence, this is comparable to [preprocessor directives](http://www.cprogramming.com/reference/preprocessor/) of C language family, `#ifdef DEBUG... #endif` I.e.
+```
+//DEBUG ON
+on *:connect: {
+  doSomethingForDevelopment
+  ...
+}
+
+alias doSomethingForDevelopment {
+...
+}
+//DEBUG OFF
+```
+As everything between DEBUG ON and DEBUG OFF gets removed, connect event handler and alias doSomethingForDevelopment will be removed from release version of the script, all reducing the script size, not having to use hacky %isDebug = 1 approach and ensuring that development-only code does not end up in release version.
 
 - **Mark aliases local**
 
