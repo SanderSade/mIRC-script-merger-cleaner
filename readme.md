@@ -50,7 +50,7 @@ MsMerge can be used with configuration file (JSON) or command-line variables. It
 
 ### Configuration file
 
-Configuration file is in a simple text file in JSON format.  Use the configuration file from command-line:
+Configuration file is a simple text file in JSON format. Use the configuration file from command-line:
 
     MsMerge.exe -c:"c:\dev\scripts\myScript\msmerge.release.json
 
